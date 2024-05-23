@@ -1,4 +1,4 @@
-FROM fedora:41
+FROM fedora:38
 ARG VTK
 
 # Build dependencies
