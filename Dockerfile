@@ -4,7 +4,7 @@ ARG VTK
 # Build dependencies
 
 RUN dnf install -y gcc gcc-c++ kernel-devel cmake ninja-build
-RUN dnf install -y git docker sed clang-tools-extra
+RUN dnf install -y git docker sed
 
 # Conditionally pre-install VTK
 
