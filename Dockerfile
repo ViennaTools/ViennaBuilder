@@ -7,7 +7,7 @@ ARG PYTHON
 
 # Build dependencies
 
-RUN apk add build-base cmake ninja-build musl-dev
+RUN apk add build-base cmake ninja-build musl-dev linux-headers
 RUN apk add git docker sed
 
 # Conditionally pre-install VTK
