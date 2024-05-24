@@ -9,5 +9,5 @@ RUN dnf install -y git docker sed
 # Conditionally pre-install VTK
 
 RUN if [ "$VTK" = "True" ]; then \
-        dnf install -y vtk vtk-devel python3 python3-devel && pip install -U cmakelang pyyaml; \ 
+        dnf install -y vtk vtk-devel; \ 
     fi
