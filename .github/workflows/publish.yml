@@ -25,9 +25,12 @@ jobs:
         run: |
           docker buildx build --tag vienna-builder --load .
           docker buildx build --tag vienna-builder-vtk --build-arg VTK="True" --load .
+          docker buildx build --tag vienna-builder-python --build-arg PYTHON="True" --load .
 
           docker image tag vienna-builder ghcr.io/viennatools/vienna-builder:stock
           docker image tag vienna-builder-vtk ghcr.io/viennatools/vienna-builder:vtk
+          docker image tag vienna-builder-python ghcr.io/viennatools/vienna-builder:python
 
           docker push ghcr.io/viennatools/vienna-builder:stock
           docker push ghcr.io/viennatools/vienna-builder:vtk
+          docker push ghcr.io/viennatools/vienna-builder:python

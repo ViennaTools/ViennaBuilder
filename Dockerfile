@@ -1,13 +1,21 @@
-FROM fedora:41
+FROM alpine:latest
+
+# Arguments
+
 ARG VTK
+ARG PYTHON
 
 # Build dependencies
 
-RUN dnf install -y gcc gcc-c++ kernel-devel cmake ninja-build
-RUN dnf install -y git docker sed
+RUN apk add build-base cmake ninja-build
+RUN apk add git docker sed
 
 # Conditionally pre-install VTK
 
 RUN if [ "$VTK" = "True" ]; then \
-        dnf install -y vtk vtk-devel; \ 
+        apk add vtk; \ 
+    fi
+
+RUN if [ "$PYTHON" = "True" ]; then \
+        apk add py3-pip && pip install -U cmakelang pyyaml clang-format==17.0.6; \ 
     fi
