@@ -39,6 +39,6 @@ jobs:
 
       - name: ♻️ Publish Images
         run: |
-          docker buildx build --tag vienna-builder --build-arg VTK="${{ matrix.vtk || 'False' }}" PYTHON="${{ matrix.python || 'False' }}" --load .
+          docker buildx build --tag vienna-builder --build-arg VTK="${{ matrix.vtk || 'False' }}" --build-arg PYTHON="${{ matrix.python || 'False' }}" --load .
           docker image tag vienna-builder ghcr.io/viennatools/vienna-builder:${{ matrix.name }}
           docker push ghcr.io/viennatools/vienna-builder:${{ matrix.name }}
