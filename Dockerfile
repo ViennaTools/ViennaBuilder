@@ -13,7 +13,7 @@ RUN apk add git docker sed
 # Conditionally pre-install VTK
 
 RUN if [ "$VTK" = "True" ]; then \
-        apk add vtk; \ 
+        apk add vtk-dev; \ 
     fi
 
 RUN if [ "$PYTHON" = "True" ]; then \
