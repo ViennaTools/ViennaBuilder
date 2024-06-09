@@ -17,5 +17,5 @@ RUN if [ "$VTK" = "True" ]; then \
     fi
 
 RUN if [ "$PYTHON" = "True" ]; then \
-        apk add python3 python3-dev py3-pip && pip install -U cmakelang pyyaml clang-format==17.0.6 --break-system-packages; \ 
+        apk add python3 python3-dev py3-pip twine && pip install -U cmakelang pyyaml clang-format==17.0.6 --break-system-packages; \ 
     fi
