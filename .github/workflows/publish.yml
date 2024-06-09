@@ -14,15 +14,15 @@ jobs:
       matrix:
         include:
           - name: stock
-          - name: vtk
-            vtk: "True"
+          - name: suite
+            suite: "True"
           - name: python
             python: "True"
-          - name: vtk-python
+          - name: suite-python
             python: "True"
-            vtk: "True"
+            suite: "True"
 
-    name: "🐳 Build Container (🐍: ${{ matrix.python || 'False' }}, 🧰: ${{ matrix.vtk || 'False' }})"
+    name: "🐳 Build Container (🐍: ${{ matrix.python || 'False' }}, 🧰: ${{ matrix.suite || 'False' }})"
 
     steps:
       - name: 📥 Checkout
@@ -40,6 +40,6 @@ jobs:
 
       - name: ♻️ Publish Images
         run: |
-          docker buildx build --tag vienna-builder --build-arg VTK="${{ matrix.vtk || 'False' }}" --build-arg PYTHON="${{ matrix.python || 'False' }}" --load .
+          docker buildx build --tag vienna-builder --build-arg SUITE="${{ matrix.vtk || 'False' }}" --build-arg PYTHON="${{ matrix.python || 'False' }}" --load .
           docker image tag vienna-builder ghcr.io/viennatools/vienna-builder:${{ matrix.name }}
           docker push ghcr.io/viennatools/vienna-builder:${{ matrix.name }}

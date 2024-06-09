@@ -2,7 +2,7 @@ FROM alpine:latest
 
 # Arguments
 
-ARG VTK
+ARG SUITE
 ARG PYTHON
 
 # Build dependencies
@@ -10,10 +10,10 @@ ARG PYTHON
 RUN apk add build-base cmake ninja-build musl-dev linux-headers
 RUN apk add git docker sed tar
 
-# Conditionally pre-install VTK
+# Conditionally pre-install common build dependencies
 
-RUN if [ "$VTK" = "True" ]; then \
-        apk add vtk-dev; \ 
+RUN if [ "$SUITE" = "True" ]; then \
+        apk add vtk-dev embree-dev onetbb-dev; \ 
     fi
 
 RUN if [ "$PYTHON" = "True" ]; then \
