@@ -1,6 +1,6 @@
 FROM quay.io/pypa/manylinux_2_28_x86_64
 
-ARG CUDA_VERSION=12-6
+ARG CUDA_VERSION=12-8
 ARG CUDA_REPO_DISTRO=rhel8
 ARG CUDA_ARCH=x86_64
 
@@ -15,11 +15,9 @@ RUN dnf install -y \
     cuda-driver-devel-${CUDA_VERSION} \
     cuda-cudart-devel-${CUDA_VERSION} \
     libcurand-devel-${CUDA_VERSION} \
-    gcc-toolset-13-gcc \
-    gcc-toolset-13-gcc-c++ \
  && dnf clean all
 
-ENV CUDA_HOME=/usr/local/cuda-12.6
+ENV CUDA_HOME=/usr/local/cuda-12.8
 ENV PATH=${CUDA_HOME}/bin:${PATH}
 ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
@@ -42,4 +40,4 @@ RUN if [ "$PYTHON" = "true" ]; then \
         clang-format==17.0.6; \
     fi
 
-ENV AUDITWHEEL_PLAT=manylinux_2_28_x86_64
+ENV AUDITWHEEL_PLAT=manylinux_2_27_x86_64
