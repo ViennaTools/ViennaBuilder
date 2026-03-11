@@ -1,25 +1,45 @@
-FROM nvidia/cuda:12.6.0-devel-ubuntu24.04
+FROM quay.io/pypa/manylinux_2_28_x86_64
 
-# Arguments
+ARG CUDA_VERSION=12-6
+ARG CUDA_REPO_DISTRO=rhel8
+ARG CUDA_ARCH=x86_64
 
-ARG SUITE
-ARG PYTHON
+RUN dnf install -y dnf-plugins-core wget git && dnf clean all
 
-# Build dependencies
+# CUDA setup
+RUN dnf config-manager --add-repo \
+    https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_REPO_DISTRO}/${CUDA_ARCH}/cuda-${CUDA_REPO_DISTRO}.repo
 
-RUN apt-get update && apt-get install -y \
-        build-essential cmake ninja-build linux-headers-generic \
-        git docker.io sed tar \
-    && rm -rf /var/lib/apt/lists/*
+RUN dnf install -y \
+    cuda-compiler-${CUDA_VERSION} \
+    cuda-driver-devel-${CUDA_VERSION} \
+    cuda-cudart-devel-${CUDA_VERSION} \
+    libcurand-devel-${CUDA_VERSION} \
+    gcc-toolset-13-gcc \
+    gcc-toolset-13-gcc-c++ \
+ && dnf clean all
+
+ENV CUDA_HOME=/usr/local/cuda-12.6
+ENV PATH=${CUDA_HOME}/bin:${PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
 # Conditionally pre-install common build dependencies
-
-RUN if [ "$SUITE" = "True" ]; then \
-        apt-get update && apt-get install -y libvtk9-dev libembree-dev libtbb-dev && rm -rf /var/lib/apt/lists/*; \
+# Embree missing on RHEL8, so we skip it for now.
+RUN if [ "$SUITE" = "true" ]; then \
+      dnf install -y \
+        vtk-devel \
+        tbb-devel \
+      && dnf clean all; \
     fi
 
-RUN if [ "$PYTHON" = "True" ]; then \
-        apt-get update && apt-get install -y python3 python3-dev python3-pip twine \
-        && rm -rf /var/lib/apt/lists/* \
-        && pip install -U cmakelang pyyaml clang-format==17.0.6 --break-system-packages; \
+# Python extras
+# manylinux already has Python interpreters + pip/build tooling in /opt/python
+RUN if [ "$PYTHON" = "true" ]; then \
+      /opt/python/cp312-cp312/bin/pip install -U \
+        twine \
+        cmakelang \
+        pyyaml \
+        clang-format==17.0.6; \
     fi
+
+ENV AUDITWHEEL_PLAT=manylinux_2_28_x86_64
