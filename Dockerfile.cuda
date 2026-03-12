@@ -1,43 +1,74 @@
 FROM quay.io/pypa/manylinux_2_28_x86_64
 
+ARG SUITE=false
+ARG PYTHON=false
+ARG INSTALL_CUDA=false
+
 ARG CUDA_VERSION=12-8
 ARG CUDA_REPO_DISTRO=rhel8
 ARG CUDA_ARCH=x86_64
 
+# manylinux already has Python interpreters + pip/build tooling in /opt/python
+ENV PATH=/opt/python/cp312-cp312/bin:${PATH}
+
 RUN dnf install -y dnf-plugins-core wget git && dnf clean all
 
 # CUDA setup
-RUN dnf config-manager --add-repo \
-    https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_REPO_DISTRO}/${CUDA_ARCH}/cuda-${CUDA_REPO_DISTRO}.repo
+RUN case "${INSTALL_CUDA:-false}" in \
+      [Tt][Rr][Uu][Ee]) \
+        dnf config-manager --add-repo \
+          https://developer.download.nvidia.com/compute/cuda/repos/${CUDA_REPO_DISTRO}/${CUDA_ARCH}/cuda-${CUDA_REPO_DISTRO}.repo \
+        ;; \
+    esac
 
-RUN dnf install -y \
-    cuda-compiler-${CUDA_VERSION} \
-    cuda-driver-devel-${CUDA_VERSION} \
-    cuda-cudart-devel-${CUDA_VERSION} \
-    libcurand-devel-${CUDA_VERSION} \
- && dnf clean all
+RUN case "${INSTALL_CUDA:-false}" in \
+      [Tt][Rr][Uu][Ee]) \
+        dnf install -y \
+          cuda-compiler-${CUDA_VERSION} \
+          cuda-driver-devel-${CUDA_VERSION} \
+          cuda-cudart-devel-${CUDA_VERSION} \
+          libcurand-devel-${CUDA_VERSION} \
+          && dnf clean all \
+        ;; \
+    esac
 
 ENV CUDA_HOME=/usr/local/cuda-12.8
 ENV PATH=${CUDA_HOME}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:/usr/local/lib:/usr/local/lib64:${LD_LIBRARY_PATH}
 
 # Conditionally pre-install common build dependencies
-# Embree missing on RHEL8, so we skip it for now.
-RUN if [ "$SUITE" = "true" ]; then \
-      dnf install -y \
-        vtk-devel \
-        tbb-devel \
-      && dnf clean all; \
-    fi
+# Embree missing on RHEL8, so we can not install it from dnf.
+RUN case "${SUITE:-false}" in \
+      [Tt][Rr][Uu][Ee]) \
+        dnf install -y \
+          vtk-devel \
+          tbb-devel \
+          && dnf clean all \
+        && wget -q -O /tmp/embree-4.4.0.x86_64.linux.tar.gz \
+          https://github.com/RenderKit/embree/releases/download/v4.4.0/embree-4.4.0.x86_64.linux.tar.gz \
+        && mkdir -p /opt/embree /usr/local/include /usr/local/lib /usr/local/lib64 /usr/local/bin \
+        && tar -xzf /tmp/embree-4.4.0.x86_64.linux.tar.gz -C /opt/embree \
+        && EMBREE_INCLUDE_DIR="$(find /opt/embree -mindepth 1 -maxdepth 4 -type d -name include | head -n1)" \
+        && [ -n "$EMBREE_INCLUDE_DIR" ] \
+        && EMBREE_ROOT="$(dirname "$EMBREE_INCLUDE_DIR")" \
+        && cp -a "$EMBREE_ROOT/include/." /usr/local/include/ \
+        && if [ -d "$EMBREE_ROOT/lib64" ]; then EMBREE_LIB_DIR="$EMBREE_ROOT/lib64"; elif [ -d "$EMBREE_ROOT/lib" ]; then EMBREE_LIB_DIR="$EMBREE_ROOT/lib"; else echo "Embree library directory not found"; exit 1; fi \
+        && cp -a "$EMBREE_LIB_DIR/." /usr/local/lib/ \
+        && cp -a "$EMBREE_LIB_DIR/." /usr/local/lib64/ \
+        && if [ -d /usr/local/lib64/cmake ] && [ ! -d /usr/local/lib/cmake ]; then cp -a /usr/local/lib64/cmake /usr/local/lib/; fi \
+        && if [ -d "$EMBREE_ROOT/bin" ]; then cp -a "$EMBREE_ROOT/bin/." /usr/local/bin/; fi \
+        && rm -rf /tmp/embree-4.4.0.x86_64.linux.tar.gz /opt/embree \
+        ;; \
+    esac
 
 # Python extras
-# manylinux already has Python interpreters + pip/build tooling in /opt/python
-RUN if [ "$PYTHON" = "true" ]; then \
-      /opt/python/cp312-cp312/bin/pip install -U \
-        twine \
-        cmakelang \
-        pyyaml \
-        clang-format==17.0.6; \
-    fi
+RUN case "${PYTHON:-false}" in \
+      [Tt][Rr][Uu][Ee]) \
+        pip install -U \
+          twine \
+          cmakelang \
+          pyyaml \
+          clang-format==17.0.6 \
+        ;; \
+    esac
 
-ENV AUDITWHEEL_PLAT=manylinux_2_27_x86_64
