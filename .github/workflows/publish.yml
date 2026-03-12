@@ -52,18 +52,20 @@ jobs:
 
       matrix:
         include:
-          - name: cuda-stock
-            install_cuda: "true"
-          - name: cuda-suite
-            suite: "true"
-            install_cuda: "true"
+          # Packaging
           - name: cuda-python
             python: "true"
             install_cuda: "true"
+          # Testing
           - name: cuda-suite-python
             python: "true"
             suite: "true"
             install_cuda: "true"
+          # Packaging without CUDA
+          - name: cuda-python-nocuda
+            python: "true"
+            install_cuda: "false"
+          # Testing without CUDA
           - name: cuda-suite-python-nocuda
             python: "true"
             suite: "true"
