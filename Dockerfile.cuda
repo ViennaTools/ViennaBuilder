@@ -28,6 +28,7 @@ RUN case "${INSTALL_CUDA:-false}" in \
           cuda-driver-devel-${CUDA_VERSION} \
           cuda-cudart-devel-${CUDA_VERSION} \
           libcurand-devel-${CUDA_VERSION} \
+          libcusparse-devel-${CUDA_VERSION} \
           && dnf clean all \
         ;; \
     esac
