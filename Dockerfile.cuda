@@ -29,6 +29,7 @@ RUN case "${INSTALL_CUDA:-false}" in \
           cuda-cudart-devel-${CUDA_VERSION} \
           libcurand-devel-${CUDA_VERSION} \
           libcusparse-devel-${CUDA_VERSION} \
+          libnvjitlink-${CUDA_VERSION} \
           && dnf clean all \
         ;; \
     esac
